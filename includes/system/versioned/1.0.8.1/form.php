@@ -102,6 +102,7 @@
     public static function validate_action_is($action = 'process') {
       $requested_action = Request::value('action');
       $formid = $_POST['formid'] ?? $_GET['formid'] ?? null;
+      error_log("validate_action_is: requested_action=$requested_action, formid=$formid, sessiontoken={$_SESSION['sessiontoken']}");
       if (is_null($requested_action)
        || is_null($formid)
        || (strlen($formid) !== strlen($_SESSION['sessiontoken'])))
