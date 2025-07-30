@@ -38,6 +38,7 @@
           'tmp_name' => $_FILES[$this->file]['tmp_name'],
         ];
       } else {
+        error_log('failed to get index ' . $this->file . ' from ' . print_r($_FILES, true));
         $file = [];
       }
 

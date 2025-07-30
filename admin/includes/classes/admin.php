@@ -91,11 +91,14 @@
     }
 
     public function locate($subdirectory, $action) {
+      error_log('locate with subdirectory: ' . $subdirectory
+        . ', action: ' . $action);
       if (!is_dir($d = "{$this->action_directory}$subdirectory")) {
         return;
       }
 
       $f = Path::normalize("$d/$action.php");
+      error_log('locate file: ' . $f);
       if (($f || ($f = Path::normalize("$d/default.php")))
         && (dirname($f) === $d))
       {
