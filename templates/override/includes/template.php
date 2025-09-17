@@ -12,6 +12,11 @@
 
   class override_template extends default_template {
 
+    protected $_base_override_directories = [
+      DIR_FS_CATALOG . 'templates/default/includes/override/',
+      DIR_FS_CATALOG . 'templates/override/includes/override/',
+    ];
+
     public function __construct() {
       $hook_directory = DIR_FS_CATALOG . 'templates/override/includes/hooks/';
       if (file_exists($hook_directory) && is_dir($hook_directory)) {
