@@ -520,7 +520,10 @@
         $additional_parameters = '-f' . $from_addr;
       }
       
-      return mail($to, $subject, $this->output, implode($this->lf, $headers), $additional_parameters); 
+      error_log("catalog send mail using \nto '$to' \nsubject '$subject' \nheaders '" . implode($this->lf, $headers) . "' \nadditional parameters '$additional_parameters' \nmessage '" . $this->output . "'\n\n", 3, DIR_FS_CATALOG . 'email.log');
+      $result = mail($to, $subject, $this->output, implode($this->lf, $headers), $additional_parameters);
+      error_log("send mail result: " . ($result ? 'true' : 'false') . "\n", 3, DIR_FS_CATALOG . 'email.log');
+      return $result;
     }
 
 /**
