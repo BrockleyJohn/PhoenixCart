@@ -674,6 +674,7 @@ EOSQL
   }
 
   function verifyTransaction($pptx_params, $is_ipn = false) {
+    $verified = false;
     $pptx_orderid = $this->orderid_from_invoice($pptx_params['invoice'] ?? '');
     if ( is_numeric($pptx_orderid) && ($pptx_orderid > 0) && isset($pptx_params['custom']) && is_numeric($pptx_params['custom']) && ($pptx_params['custom'] > 0) ) {
       $order_query = $GLOBALS['db']->query("SELECT orders_id, currency, currency_value FROM orders WHERE orders_id = " . (int)$pptx_orderid . " AND customers_id = " . (int)$pptx_params['custom']);
@@ -691,8 +692,10 @@ EOSQL
                         . 'Payment Type: ' . htmlspecialchars($pptx_params['payment_type']) . "\n"
                         . 'Pending Reason: ' . htmlspecialchars($pptx_params['pending_reason'] ?? '');
 
-        if ( $pptx_params['mc_gross'] != $GLOBALS['currencies']->format_raw($total['value'], true, $order['currency'], $order['currency_value']) ) {
-          $comment_status .= "\n" . 'Error Total Mismatch: PayPal transaction value (' . htmlspecialchars($pptx_params['mc_gross']) . ') does not match order value (' . $GLOBALS['currencies']->format_raw($total['value'], true, $order['currency'], $order['currency_value']) . ')';
+        if ( $pptx_params['mc_currency'] != $order['currency'] || $pptx_params['mc_gross'] != $GLOBALS['currencies']->format_raw($total['value'], true, $order['currency'], $order['currency_value']) ) {
+          $comment_status .= "\n" . 'Error Total Mismatch: PayPal transaction value (' . htmlspecialchars($pptx_params['mc_gross']) . ' ' .  htmlspecialchars($pptx_params['mc_currency']) . ') does not match order value (' . $GLOBALS['currencies']->format_raw($total['value'], true, $order['currency'], $order['currency_value']) . ' ' . htmlspecialchars($order['currency']) . ')';
+        } else {
+          $verified = true;
         }
 
         if ( $is_ipn === true ) {
@@ -710,6 +713,7 @@ EOSQL
         $GLOBALS['db']->perform('orders_status_history', $sql_data);
       }
     }
+    return $verified;
   }
 
   protected function get_parameters() {
@@ -745,6 +749,20 @@ EOSQL
         'use_func' => 'order_status::fetch_name',
         'set_func' => 'Config::select_order_status(',
       ],
+      static::CONFIG_KEY_BASE . 'PENDING_ORDER_STATUS_ID' => [
+        'title' => 'Payment Pending Order Status',
+        'desc' => 'Set the status of orders with pending paypal payments to this value',
+        'value' => abstract_payment_module::ensure_order_status(static::CONFIG_KEY_BASE . 'PENDING_ORDER_STATUS_ID', 'Pending [Paypal Standard]', 1),
+        'use_func' => 'order_status::fetch_name',
+        'set_func' => 'Config::select_order_status(',
+      ],
+      static::CONFIG_KEY_BASE . 'FAILED_ORDER_STATUS_ID' => [
+        'title' => 'Payment Failed Order Status',
+        'desc' => 'Set the status of orders with failed paypal payments to this value',
+        'value' => abstract_payment_module::ensure_order_status(static::CONFIG_KEY_BASE . 'FAILED_ORDER_STATUS_ID', 'Failed [Paypal Standard]', 1),
+        'use_func' => 'order_status::fetch_name',
+        'set_func' => 'Config::select_order_status(',
+      ],
       static::CONFIG_KEY_BASE . 'ORDER_STATUS_ID' => [
         'title' => 'Set Order Status',
         'desc' => 'Set the status of orders made with this payment module to this value',
@@ -772,7 +790,7 @@ EOSQL
         'value' => 'Live',
         'set_func' => "Config::select_one(['Live', 'Sandbox'], ",
       ],
-      /* static::CONFIG_KEY_BASE . 'VERIFY_SSL' => [
+      static::CONFIG_KEY_BASE . 'VERIFY_SSL' => [
         'title' => 'Verify SSL Certificate',
         'desc' => 'Verify the gateway server SSL certificate on connection?',
         'value' => 'True',
@@ -781,7 +799,7 @@ EOSQL
       static::CONFIG_KEY_BASE . 'PROXY' => [
         'title' => 'Proxy Server',
         'desc' => 'A few installations need to send API requests via a proxy server. Configure it here, e.g. 123.45.67.89:8080',
-      ], */
+      ],
       static::CONFIG_KEY_BASE . 'CONFIRM_BTN' => [
         'title' => 'Confirm Button',
         'desc' => 'Class of submit button on checkout confirmation page',
