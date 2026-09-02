@@ -33,6 +33,9 @@
       error_log("ERROR: [$errno] $error\n" . "\n", 3, STORE_PAGE_PARSE_TIME_LOG);
     }
 
+    $e = new Exception('[' . $errno . '] ' . $error);
+    error_log($e->getMessage() . "\n" . $query . "\n" . $e->getTraceAsString());
+
     die('<font color="#000000"><strong>' . $errno . ' - ' . $error . '<br><br>' . $query . '<br><br><small><font color="#ff0000">[TEP STOP]</font></small><br><br></strong></font>');
   }
 
