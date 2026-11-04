@@ -65,7 +65,7 @@
         
         if (isset($option['parameters']) && is_array($option['parameters'])) {
           foreach ($option['parameters'] as $name => $value) {
-            $field .= sprintf(' %s="%s"', $name, Text::output($value, static::ESCAPES));
+            $field .= sprintf(' %s="%s"', $name, Text::output($value ?? '', static::ESCAPES));
           }
         }
 
